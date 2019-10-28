@@ -1,0 +1,6 @@
+inputs/
+outputs/
+__pycache__/
+.ipynb_checkpoints/
+p5-project/imgs/
+.*.swp
