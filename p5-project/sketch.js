@@ -19,7 +19,7 @@ const controls_bottom        = controls_top_margin + controls_percent + controls
 const timeline_top           = 1 - (timeline_percent + timeline_bottom_margin);
 const plotarea_height        = timeline_top - controls_bottom;
 
-const SHOW_FRAMERATE = 'none';
+const SHOW_FRAMERATE = 'plot';
 const FRAMERATE      = 60;
 
 // ENUMS
@@ -158,7 +158,6 @@ function preload() {
                     image: image,
                     latitude: lat,
                     longitude: lng,
-                    dodraw: false,
                     x: 0,
                     y: 0,
                     size: 0,
@@ -387,6 +386,7 @@ function setup() {
                 plot_selection = MAP;
                 this.normalDraw();
                 enableMap();
+                clear();
             })
         ];
 
@@ -396,9 +396,12 @@ function setup() {
             myMap.map.zoomControl.remove()
             myMap.map.attributionControl.remove()
 
+            images.forEach(entry => new L.marker(e).myMap.map.addMarker());
+            //plot_selectors.forEach(function(x) { x.draw() });
+
             disableMap();
         });
-    myMap.onChange(updateImagePositionsOnMap)
+    //myMap.onChange(updateImagePositionsOnMap)
 
     // --- setup for drawing ---
     imageMode(CORNER);
@@ -438,8 +441,6 @@ let histogramZoom    = 1;
 function draw() {
     if (plot_selection !== MAP)
         background(255, 255, 255);
-    else
-        clear();
 
     push();
     // draw plot area
@@ -470,36 +471,7 @@ function draw() {
         case DISCRETE_HISTOGRAM:
             break;
         case MAP:
-            let entry, x, y, w, h;
-            for (var i = 0; i < images.length; i++) {
-                entry = images[i];
-                if (!entry.dodraw)
-                    continue;
-
-                locationMarker(locationMarkerBuffer, entry.x, entry.y, entry.size);
-                //locationMarker(entry.x, entry.y, entry.size, BLACK, WHITE, BLACK);  // This is the bottleneck!
-            }
-            for (var i = 0; i < images.length; i++) {
-                entry = images[i];
-                if (!entry.dodraw)
-                    continue;
-
-                if (dist2(entry.x, entry.y-2*entry.size, mouseX, mouseY) < 4*entry.size*entry.size) {
-                    x = entry.x;
-                    y = entry.y;
-                    w = 0.2*width;
-                    if (entry.width <= w)
-                        h = entry.image.height;
-                    else
-                        h = w*entry.image.height/entry.image.width;
-                    if (x+10+w >= width-10)
-                        x -= w + 20;
-                    if (y+10+h >= timeline_top*height - 10)
-                        y -= h + 20;
-                    image(entry.image, x+10, y+10, w, h);
-                    break;
-                }
-            }
+            // do nothing
             break;
     }
     pop()
@@ -606,22 +578,52 @@ function mkBins() {
 }
 
 function updateImagePositionsOnMap() {
+    clear();
+
     for (var i = 0; i < images.length; i++) {
         var entry = images[i];
 
         if (!myMap.map.getBounds().contains({lat: entry.latitude, lng: entry.longitude})) {
-            images[i].dodraw = false;
+            images[i].x = Number.NaN;
+            images[i].y = Number.NaN;
             continue;
         }
 
         const xy = myMap.latLngToPixel(entry.latitude, entry.longitude);
         //const size = 10 + myMap.zoom();
         const size = 4 + myMap.zoom();
-        images[i].dodraw = true;
         images[i].x = xy.x;
         images[i].y = xy.y;
         images[i].size = size;
+
+        //locationMarker(locationMarkerBuffer, entry.x, entry.y, entry.size);
     }
+
+    /*
+    for (var i = 0; i < images.length; i++) {
+        entry = images[i];
+        if (!entry.dodraw)
+            continue;
+
+        if (dist2(entry.x, entry.y-2*entry.size, mouseX, mouseY) < 4*entry.size*entry.size) {
+            x = entry.x;
+            y = entry.y;
+            w = 0.2*width;
+            if (entry.width <= w)
+                h = entry.image.height;
+            else
+                h = w*entry.image.height/entry.image.width;
+            if (x+10+w >= width-10)
+                x -= w + 20;
+            if (y+10+h >= timeline_top*height - 10)
+                y -= h + 20;
+            image(entry.image, x+10, y+10, w, h);
+            break;
+        }
+    }
+    */
+
+    plot_selectors.forEach(function(x) { x.draw() });
 }
 
 function mouseWheel(event) {
