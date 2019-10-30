@@ -10,6 +10,11 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
         <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
 
+        <!-- import Leaflet clustering plugin -->
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css" />
+        <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
+        <script type="text/javascript" src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
         <!-- load the data -->
         <!-- <script src="loaddata.js"></script> -->
 
@@ -58,26 +63,72 @@ body {
     from {opacity: 0;}
     to {opacity: 1;}
 }
+
+.sidebar {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    z-index: 1;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    color: white;
+    overflow-x: hidden;
+    padding-top: 60px;
+    transition: 0.5s;
+}
+
+.sidebar .closebtn {
+    position: absolute;
+    top: 0;
+    right: 25px;
+    font-size: 36px;
+    margin-left: 50px;
+}
+
+#main {
+    transition: margin-left .5s;
+    /* padding: 20px; */
+
+    display: flex;
+    padding: 6px 12px;
+    flex-grow: 1;
+    flex-flow: column;
+}
         </style>
     </head>
     <body>
-        <!-- Tab links -->
-        <div class="tab">
-            <button id="tablink-map" class="tablinks" onclick="openTab(event, 'map')">Map</button>
-            <button id="tablink-histogram" class="tablinks" onclick="openTab(event, 'histogram')">Histogram</button>
-            <button id="tablink-discretehistogram" class="tablinks" onclick="openTab(event, 'discretehistogram')">Discrete Histogram</button>
+        <div id="sidebar" class="sidebar">
+            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+
+            <h1>Filters</h1>
+
+            some stuff here
         </div>
 
-        <!-- Tab content -->
-        <div id="map" class="tabcontent"> </div>
+        <div id="main">
+            <!-- Tab bar -->
+            <div class="tab">
+                <button class="openbtn" onclick="openNav()">&#9776; Filters</button>
 
-        <div id="histogram" class="tabcontent"> </div>
+                <button id="tablink-map" class="tablinks" onclick="openTab(event, 'map')">Map</button>
+                <button id="tablink-histogram" class="tablinks" onclick="openTab(event, 'histogram')">Histogram</button>
+                <button id="tablink-discretehistogram" class="tablinks" onclick="openTab(event, 'discretehistogram')">Discrete Histogram</button>
+                <button id="tablink-similarityprojection" class="tablinks" onclick="openTab(event, 'similarity-projection')">Similarity Projection</button>
+                <button id="tablink-distributedview" class="tablinks" onclick="openTab(event, 'distributed-view')">Distributed View</button>
+            </div>
 
-        <div id="discretehistogram" class="tabcontent"> </div>
+            <!-- Tab content -->
+            <div id="map" class="tabcontent"> </div>
+            <div id="histogram" class="tabcontent"> </div>
+            <div id="discretehistogram" class="tabcontent"> </div>
+            <div id="similarity-projection" class="tabcontent"> </div>
+            <div id="distributed-view" class="tabcontent"> </div>
 
-        <script src="map.js"> </script>
-        <script src="histogram.js"></script>
-        <script src="discretehistogram.js"></script>
+            <script src="map.js"> </script>
+            <script src="histogram.js"></script>
+            <script src="discretehistogram.js"></script>
+        </div>
 
         <!-- Set up the tabs: -->
         <script>
@@ -97,6 +148,22 @@ body {
             }
 
             document.getElementById('tablink-map').click();
+        </script>
+        <!-- Set up the filters sidebar: -->
+        <script>
+            /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
+            function openNav() {
+                document.getElementById("sidebar").style.width = "20%"; // "250px";
+                document.getElementById("sidebar").style.paddingLeft = "30px";
+                document.getElementById("main").style.marginLeft = "21%"; // "250px";
+            }
+
+            /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+            function closeNav() {
+                document.getElementById("sidebar").style.width = "0";
+                document.getElementById("sidebar").style.paddingLeft = "0";
+                document.getElementById("main").style.marginLeft = "0";
+            }
         </script>
     </body>
 </html>
