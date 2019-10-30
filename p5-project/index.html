@@ -3,9 +3,6 @@
         <title>IMS Visualizer</title>
         <meta charset="UTF-8">
 
-        <!-- import D3 -->
-        <script src="https://d3js.org/d3.v5.min.js"></script>
-
         <!-- import Leaflet -->
         <link rel="stylesheet" href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css" integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ==" crossorigin=""/>
         <script src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js" integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og==" crossorigin=""></script>
@@ -15,8 +12,11 @@
         <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css" />
         <script type="text/javascript" src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
 
-        <!-- load the data -->
-        <!-- <script src="loaddata.js"></script> -->
+        <!-- import D3 -->
+        <script src="https://d3js.org/d3.v5.min.js"></script>
+
+        <!-- include constants -->
+        <script src="consts.js"></script>
 
         <style>
 .tab {
@@ -42,6 +42,10 @@
 
 .tab button.active {
     background-color: #ccc;
+}
+
+.tab button.sideopen {
+    background-color: #aaa;
 }
 
 body {
@@ -84,6 +88,22 @@ body {
     right: 25px;
     font-size: 36px;
     margin-left: 50px;
+    text-decoration: none;
+}
+
+.sidebar .greedy {
+    width: 100%;
+    /* background-color: orange; */
+}
+
+.leaflet-popup-close-button .unselectable {
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome, Opera and Firefox */
 }
 
 #main {
@@ -98,18 +118,42 @@ body {
         </style>
     </head>
     <body>
-        <div id="sidebar" class="sidebar">
+        <div id="sidebar" class="sidebar unselectable">
             <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
 
             <h1>Filters</h1>
 
-            some stuff here
+            <h2>By Time</h2>
+
+            <table>
+                <tr>
+                    <td align="right" style="color: white">
+                        From:
+                    </td>
+                    <td align="left">
+                        <input type="date" id="filter-date-start" onchange="updateFilters()">
+                    </td>
+                </tr>
+                <tr>
+                    <td align="right" style="color: white">
+                        Until:
+                    </td>
+                    <td align="left">
+                        <input type="date" id="filter-date-end" onchange="updateFilters()">
+                    </td>
+                </tr>
+            </table>
+
+            <h2>By Author</h2>
+
+            <label> <div class="greedy"> <input type="checkbox" id="Medeiros" checked="true" onchange="updateFilters()"> José Medeiros </div> </label> <br>
+            <label> <div class="greedy"> <input type="checkbox" id="Farkas" checked="true" onchange="updateFilters()"> Farkas </div> </label> <br>
         </div>
 
         <div id="main">
             <!-- Tab bar -->
-            <div class="tab">
-                <button class="openbtn" onclick="openNav()">&#9776; Filters</button>
+            <div class="tab unselectable">
+                <button class="openbtn" onclick="toggleNav()" style="margin-right: 50px;">&#9776; Filters</button>
 
                 <button id="tablink-map" class="tablinks" onclick="openTab(event, 'map')">Map</button>
                 <button id="tablink-histogram" class="tablinks" onclick="openTab(event, 'histogram')">Histogram</button>
@@ -125,10 +169,18 @@ body {
             <div id="similarity-projection" class="tabcontent"> </div>
             <div id="distributed-view" class="tabcontent"> </div>
 
-            <script src="map.js"> </script>
-            <script src="histogram.js"></script>
-            <script src="discretehistogram.js"></script>
+            <center style="margin-top: 10px">
+                <!-- Credits can go here -->
+            </center>
         </div>
+
+        <!-- Set up the views -->
+        <script src="map.js"></script>
+        <script src="histogram.js"></script>
+        <script src="discretehistogram.js"></script>
+
+        <!-- Set up the filters -->
+        <script src="filters.js"></script>
 
         <!-- Set up the tabs: -->
         <script>
@@ -152,10 +204,18 @@ body {
         <!-- Set up the filters sidebar: -->
         <script>
             /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
-            function openNav() {
-                document.getElementById("sidebar").style.width = "20%"; // "250px";
-                document.getElementById("sidebar").style.paddingLeft = "30px";
-                document.getElementById("main").style.marginLeft = "21%"; // "250px";
+            function toggleNav() {
+                if (document.getElementById("sidebar").style.width == "20%")
+                    closeNav();
+                else {
+                    document.getElementById("sidebar").style.width = "20%";
+                    document.getElementById("sidebar").style.paddingLeft = "30px";
+                    document.getElementById("main").style.marginLeft = "21%";
+
+                    var btns = document.getElementsByClassName("openbtn")
+                    for (var i = 0; i < btns.length; i++)
+                        btns[i].className += " sideopen";
+                }
             }
 
             /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
@@ -163,6 +223,10 @@ body {
                 document.getElementById("sidebar").style.width = "0";
                 document.getElementById("sidebar").style.paddingLeft = "0";
                 document.getElementById("main").style.marginLeft = "0";
+
+                var btns = document.getElementsByClassName("openbtn")
+                for (var i = 0; i < btns.length; i++)
+                    btns[i].className = btns[i].className.replace(" sideopen", "");
             }
         </script>
     </body>
