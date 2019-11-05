@@ -26,5 +26,5 @@ function mapUpdateFilters(data) {
 }
 
 
-d3.csv("test.csv").then(addMarkers);
+d3.csv(CSV_TABLE).then(addMarkers);
 myMap.addLayer(clustermarkers);

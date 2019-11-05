@@ -1,1 +1,1 @@
-const CSV_TABLE = "test.csv"
+const CSV_TABLE = "table.csv"

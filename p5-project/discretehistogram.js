@@ -1,7 +1,5 @@
 // === CONSTANTS ===
 
-csv_path = "/test.csv";
-
 // load the data
 
 /*
