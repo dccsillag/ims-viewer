@@ -238,26 +238,27 @@ def main():
     with open(args.cache, 'r+b') as cachefile:
         def geolocate(location_string):
             def is_invalid(loc):
-                return pd.isna(loc.latitude) or pd.isna(loc.longitude)
+                return location_string != "" and (loc is None or pd.isna(loc.latitude) or pd.isna(loc.longitude))
 
             cachefile.seek(0)
             cache = pickle.load(cachefile)  # A dictionary (keys = queries, and values = geocoded location)
             if location_string in cache:
-                pg.advance(measure=False)
                 location = cache[location_string]
                 if is_invalid(location):
-                    return geolocate(...)
+                    time.sleep(args.delay)
+                    return geolocate(", ".join(location_string.split(", ")[1:]))
                 else:
+                    pg.advance(measure=False)
                     return cache[location_string]
             location = geolocator.geocode(location_string, timeout=10)
             cache[location_string] = location
             time.sleep(args.delay)
-            pg.advance()
             cachefile.seek(0)
             pickle.dump(cache, cachefile)
             if is_invalid(location):
-                return geolocate(...)
+                return geolocate(", ".join(location_string.split(", ")[1:]))
             else:
+                pg.advance()
                 return location
         geolocators = df[STRS[args.language]['location string']].apply(geolocate, 'ignore')
         pg.finish()
