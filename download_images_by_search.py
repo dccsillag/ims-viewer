@@ -8,7 +8,7 @@ import shutil
 import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException
+from selenium.common.exceptions import TimeoutException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException, NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.common.by import By
@@ -161,7 +161,7 @@ def main():
                         os.system(f"convert -resample {args.diagonal} \"{filename}\" \"{filename}\"")
                     pg.advance()
                 break
-            except StaleElementReferenceException:
+            except (StaleElementReferenceException, NoSuchElementException):
                 time.sleep(0.2)
                 continue
 
