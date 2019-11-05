@@ -214,9 +214,7 @@ def main():
     df[STRS[args.language]['year']]  = df[STRS[args.language]['time of image']].map(lambda x: get_date_part(x, 0), 'ignore').fillna(0)
     ## Find out more stuff
     ### Find the latitude and longitude of each image using geopy
-    #geolocator = Nominatim(user_agent="ims_xml_to_pandas")
     geolocator = Nominatim()
-    #### (TODO) XXX reference at: https://nominatim.org/release-docs/develop/api/Search/
     df[STRS[args.language]['country']] = df[STRS[args.language]['country']].map(lambda x: x[0][0], 'ignore')
     df[STRS[args.language]['state']] = df[STRS[args.language]['state']].map(lambda x: x[0][0], 'ignore')
     df[STRS[args.language]['county']] = df[STRS[args.language]['county']].map(lambda x: x[0][0], 'ignore')
@@ -239,18 +237,28 @@ def main():
     pg = ProgressBar(len(df.index))
     with open(args.cache, 'r+b') as cachefile:
         def geolocate(location_string):
+            def is_invalid(loc):
+                return pd.isna(loc.latitude) or pd.isna(loc.longitude)
+
             cachefile.seek(0)
             cache = pickle.load(cachefile)  # A dictionary (keys = queries, and values = geocoded location)
             if location_string in cache:
                 pg.advance(measure=False)
-                return cache[location_string]
+                location = cache[location_string]
+                if is_invalid(location):
+                    return geolocate(...)
+                else:
+                    return cache[location_string]
             location = geolocator.geocode(location_string, timeout=10)
             cache[location_string] = location
             time.sleep(args.delay)
             pg.advance()
             cachefile.seek(0)
             pickle.dump(cache, cachefile)
-            return location
+            if is_invalid(location):
+                return geolocate(...)
+            else:
+                return location
         geolocators = df[STRS[args.language]['location string']].apply(geolocate, 'ignore')
         pg.finish()
     df[STRS[args.language]['latitude']] = geolocators.map(lambda x: x.latitude, 'ignore')
