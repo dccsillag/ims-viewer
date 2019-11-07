@@ -47,6 +47,7 @@ STRS = {
         "state": "estado",
         "county": "município",
         "location string": "texto do local",
+        "exact location": "localização exata",
         "latitude": "latitude",
         "longitude": "longitude",
     },
@@ -74,6 +75,7 @@ STRS = {
         "state": "state",
         "county": "county",
         "location string": "location string",
+        "exact location": "exact location",
         "latitude": "latitude",
         "longitude": "longitude",
     },
@@ -227,6 +229,7 @@ def main():
     df[STRS[args.language]['location string']] = df[STRS[args.language]['location string']].map(lambda x: x[2:] if x.startswith(", ") else x)
     df[STRS[args.language]['location string']] = df[STRS[args.language]['location string']].map(lambda x: x[:-2] if x.endswith(", ") else x)
     df[STRS[args.language]['location string']].apply(lambda x: None if x == "" else x, 'ignore')
+    df[STRS[args.language]['exact location']] = True
     if args.n_rows is not None:
         df = df.take(range(args.n_rows))
     print("Finding geolocations...")
@@ -238,7 +241,11 @@ def main():
     with open(args.cache, 'r+b') as cachefile:
         def geolocate(location_string):
             def is_invalid(loc):
-                return location_string != "" and (loc is None or pd.isna(loc.latitude) or pd.isna(loc.longitude))
+                if location_string != "" and (loc is None or pd.isna(loc.latitude) or pd.isna(loc.longitude)):
+                    df.loc[df[STRS[args.language]['location string']] == location_string, STRS[args.language]['exact location']] = False
+                    return True
+                else:
+                    return False
 
             cachefile.seek(0)
             cache = pickle.load(cachefile)  # A dictionary (keys = queries, and values = geocoded location)
