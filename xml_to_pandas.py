@@ -14,6 +14,9 @@ import certifi
 import geopy.geocoders
 from geopy.geocoders import Nominatim
 import time
+import sklearn.manifold
+import tensorflow as tf
+from PIL import Image
 from progressbar import ProgressBar
 
 # Setup SSL certificate for Geopy's Geocoders
@@ -25,6 +28,7 @@ geopy.geocoders.options.default_ssl_context = ctx
 STRS = {
     "pt": {
         "file name": "nome do arquivo",
+        "file path": "caminho do arquivo",
         "place": "local",
         "ambient": "espacialidade",
         "genre": "gênero de imagem",
@@ -50,9 +54,13 @@ STRS = {
         "exact location": "localização exata",
         "latitude": "latitude",
         "longitude": "longitude",
+        "similarity_x": "similaridade x",
+        "similarity_y": "similaridade y",
+        "similarity_s": "similaridade tamanho",
     },
     "en": {
         "file name": "file name",
+        "file path": "file path",
         "place": "place",
         "ambient": "ambient",
         "genre": "genre",
@@ -78,8 +86,88 @@ STRS = {
         "exact location": "exact location",
         "latitude": "latitude",
         "longitude": "longitude",
+        "similarity_x": "similarity x",
+        "similarity_y": "similarity y",
+        "similarity_s": "similarity size",
     },
 }
+
+
+def calculate_similarities(lang, df):
+    def prepare_image(fpath):
+        img = tf.keras.preprocessing.image.load_img(fpath, target_size=(224, 224))
+        img_array = tf.keras.preprocessing.image.img_to_array(img)
+        img_array_expanded_dims = np.expand_dims(img_array, axis=0)
+        return tf.keras.applications.mobilenet.preprocess_input(img_array_expanded_dims)
+
+    def rects_overlap(l0, r0, l1, r1):
+        return not (r0[0] <= l1[0] or  r1[0] <= l0[0] or  r0[1] <= l1[1] or  r1[1] <= l0[1])
+
+    # Find the coordinates
+
+    ## Load stuff
+    ### Load VGG-16, pretrained on the ImageNet dataset
+    original_model = tf.keras.applications.vgg16.VGG16()
+    ### Remove the last three layers
+    inp = original_model.input
+    out = original_model.layers[-4].output
+    model = tf.keras.Model(inp, out)
+
+    ## Calculate the similarities
+    def find_features(fpath):
+        if os.path.exists(fpath):
+            ### Prepare the image
+            img = prepare_image(fpath)
+            ### Pass it through the neural net
+            return np.squeeze(model.predict(img))
+        return None
+
+    featurevecs = df[STRS[lang]['file path']].apply(find_features, 'ignore').dropna()
+    featurevecs = np.stack(featurevecs.values)
+    coords = sklearn.manifold.TSNE().fit_transform(featurevecs)
+
+    ## Add them to the table
+    fpath_filter = df[STRS[lang]['file path']].apply(lambda x: os.path.exists(x), 'ignore')
+    df[STRS[lang]['similarity_x']] = None
+    df[STRS[lang]['similarity_x']].loc[fpath_filter] = coords[:, 0]
+    df[STRS[lang]['similarity_y']] = None
+    df[STRS[lang]['similarity_y']].loc[fpath_filter] = coords[:, 1]
+
+    # Find the widths and heights
+
+    dims = df[STRS[lang]['file path']].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
+    widths, heights = zip(*dims)
+    resizes = np.ones(len(coords)) * max(max(coords[:,0])-min(coords[:,0]), max(coords[:,1])-min(coords[:,1]))/min(max(widths), max(heights))
+
+    print("Started optimizing image sizes...")
+
+    stepsize = 0.1
+    has_overlapping = True
+    k = 1
+    while stepsize > 1e-7:
+        print(f"iter: stepsize={stepsize} k={k}", end="\r")
+        has_overlapping = False
+        for i, ((x0,y0), w0, h0) in enumerate(zip(coords, widths, heights)):
+            for j, ((x1,y1), w1, h1) in enumerate(zip(coords, widths, heights)):
+                if i == j:
+                    continue
+                ri = resizes[i]
+                rj = resizes[j]
+                if rects_overlap((x0,y0),(x0+ri*w0,y0+ri*h0), (x1,y1),(x1+rj*w1,y1+rj*h1)):
+                    has_overlapping = True
+                    resizes[i] -= stepsize
+                    resizes[j] -= stepsize
+                else:
+                    resizes[i] += stepsize
+                    resizes[j] += stepsize
+                if resizes[i] <= stepsize or resizes[j] <= stepsize:
+                    stepsize *= 0.5
+        if not has_overlapping:
+            stepsize *= 0.5
+        k += 1
+
+    df[STRS[lang]['similarity_s']] = None
+    df[STRS[lang]['similarity_s']].loc[fpath_filter] = resizes
 
 
 def main():
@@ -96,6 +184,7 @@ def main():
     ap.add_argument("-n", "--n-rows", action='store', type=int, default=None, help="If set, take the given number of rows from the generated table (before finding the latitude/longitude)")
     ap.add_argument("-C", "--cache", action='store', type=str, default=os.path.expanduser("~/.nominatim-cache"), help="Cache for the Nominatim queries")
     ap.add_argument("-i", "--images", action='store', type=str, default=None, help="If set, only keep rows whose image's file names exist in the given directory")
+    ap.add_argument("-f", "--filepath", action='store', type=str, default="", help="Prefix path for image files")
     args = ap.parse_args()
 
     print("Reading input file")
@@ -169,6 +258,8 @@ def main():
     df = pd.DataFrame(table)
 
     # Process some stuff
+    ## Build the 'file path' column
+    df[STRS[args.language]['file path']] = df[STRS[args.language]['file name']].map(lambda x: os.path.join(args.filepath, x), 'ignore')
     ## Make the 'author' column a string
     df[STRS[args.language]['author']] = df[STRS[args.language]['author']].map(lambda x: x[0][0], 'ignore')
     ## Make the 'process' column a string
@@ -215,6 +306,8 @@ def main():
     df[STRS[args.language]['month']] = df[STRS[args.language]['time of image']].map(lambda x: get_date_part(x, 1), 'ignore').fillna(0)
     df[STRS[args.language]['year']]  = df[STRS[args.language]['time of image']].map(lambda x: get_date_part(x, 0), 'ignore').fillna(0)
     ## Find out more stuff
+    ### Calculate similarities, and attach their projection to R^2 to the table
+    calculate_similarities(args.language, df)
     ### Find the latitude and longitude of each image using geopy
     geolocator = Nominatim()
     df[STRS[args.language]['country']] = df[STRS[args.language]['country']].map(lambda x: x[0][0], 'ignore')
