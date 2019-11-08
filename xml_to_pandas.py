@@ -100,9 +100,6 @@ def calculate_similarities(lang, df):
         img_array_expanded_dims = np.expand_dims(img_array, axis=0)
         return tf.keras.applications.mobilenet.preprocess_input(img_array_expanded_dims)
 
-    def rects_overlap(l0, r0, l1, r1):
-        return not (r0[0] <= l1[0] or  r1[0] <= l0[0] or  r0[1] <= l1[1] or  r1[1] <= l0[1])
-
     # Find the coordinates
 
     ## Load stuff
@@ -133,41 +130,41 @@ def calculate_similarities(lang, df):
     df[STRS[lang]['similarity_y']] = None
     df[STRS[lang]['similarity_y']].loc[fpath_filter] = coords[:, 1]
 
-    # Find the widths and heights
+    ## Find the widths and heights
 
-    dims = df[STRS[lang]['file path']].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
-    widths, heights = zip(*dims)
-    resizes = np.ones(len(coords)) * max(max(coords[:,0])-min(coords[:,0]), max(coords[:,1])-min(coords[:,1]))/min(max(widths), max(heights))
+    #dims = df[STRS[lang]['file path']].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
+    #widths, heights = zip(*dims)
+    #resizes = np.ones(len(coords)) * max(max(coords[:,0])-min(coords[:,0]), max(coords[:,1])-min(coords[:,1]))/min(max(widths), max(heights))
 
-    print("Started optimizing image sizes...")
+    #print("Started optimizing image sizes...")
 
-    stepsize = 0.1
-    has_overlapping = True
-    k = 1
-    while stepsize > 1e-7:
-        print(f"iter: stepsize={stepsize} k={k}", end="\r")
-        has_overlapping = False
-        for i, ((x0,y0), w0, h0) in enumerate(zip(coords, widths, heights)):
-            for j, ((x1,y1), w1, h1) in enumerate(zip(coords, widths, heights)):
-                if i == j:
-                    continue
-                ri = resizes[i]
-                rj = resizes[j]
-                if rects_overlap((x0,y0),(x0+ri*w0,y0+ri*h0), (x1,y1),(x1+rj*w1,y1+rj*h1)):
-                    has_overlapping = True
-                    resizes[i] -= stepsize
-                    resizes[j] -= stepsize
-                else:
-                    resizes[i] += stepsize
-                    resizes[j] += stepsize
-                if resizes[i] <= stepsize or resizes[j] <= stepsize:
-                    stepsize *= 0.5
-        if not has_overlapping:
-            stepsize *= 0.5
-        k += 1
+    #stepsize = 0.1
+    #has_overlapping = True
+    #k = 1
+    #while stepsize > 1e-7:
+    #    print(f"iter: stepsize={stepsize} k={k}", end="\r")
+    #    has_overlapping = False
+    #    for i, ((x0,y0), w0, h0) in enumerate(zip(coords, widths, heights)):
+    #        for j, ((x1,y1), w1, h1) in enumerate(zip(coords, widths, heights)):
+    #            if i == j:
+    #                continue
+    #            ri = resizes[i]
+    #            rj = resizes[j]
+    #            if rects_overlap((x0,y0),(x0+ri*w0,y0+ri*h0), (x1,y1),(x1+rj*w1,y1+rj*h1)):
+    #                has_overlapping = True
+    #                resizes[i] -= stepsize
+    #                resizes[j] -= stepsize
+    #            else:
+    #                resizes[i] += stepsize
+    #                resizes[j] += stepsize
+    #            if resizes[i] <= stepsize or resizes[j] <= stepsize:
+    #                stepsize *= 0.5
+    #    if not has_overlapping:
+    #        stepsize *= 0.5
+    #    k += 1
 
-    df[STRS[lang]['similarity_s']] = None
-    df[STRS[lang]['similarity_s']].loc[fpath_filter] = resizes
+    #df[STRS[lang]['similarity_s']] = None
+    #df[STRS[lang]['similarity_s']].loc[fpath_filter] = resizes
 
 
 def main():
