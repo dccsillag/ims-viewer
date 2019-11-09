@@ -55,7 +55,7 @@ function addSimilarityProjectionImages(data) {
         .attr("y", 0);
 
     // Scatter the images
-    similarityprojection_svg
+    var imgs = similarityprojection_svg
         .append("g")
         //.attr("clip-path", "url(#clip)")
         .selectAll("dot")
@@ -66,7 +66,26 @@ function addSimilarityProjectionImages(data) {
             .attr("y", d => x(Number(d["similarity y"]))-50)
             .attr("width", 100)
             .attr("height", 100)
-            .attr("href", d => "imgs/" + d["file name"]);
+            .attr("href", d => "imgs/" + d["file name"])
+
+    // Adapted from https://stackoverflow.com/a/11071687/4803382
+    console.log(imgs.size());
+    var imageCounter = 0;
+    function incrementImageCounter() {
+        div_contents = document.getElementById("contents");
+
+        imageCounter++;
+        if (imageCounter == imgs.size()) {
+            console.log("All images loaded!");
+
+            div_contents.style.display = "flex";
+        } else if (imageCounter > imgs.size()) {
+            console.log("Oooops! Something went wrong (loaded too many images)");
+        }
+    }
+
+    imgs
+        .attr('on', incrementImageCounter);
 
     var zoom = d3.zoom()
         //.scaleExtent([1, 100])

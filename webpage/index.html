@@ -18,6 +18,9 @@
         <!-- include constants -->
         <script src="consts.js"></script>
 
+        <script>
+        </script>
+
         <style>
 .tab {
     overflow: hidden;
@@ -115,125 +118,137 @@ body {
     flex-grow: 1;
     flex-flow: column;
 }
+
+#contents {
+    transition: margin-left .5s;
+    /* padding: 20px; */
+
+    display: flex;
+    padding: 6px 12px;
+    flex-grow: 1;
+    flex-flow: column;
+}
         </style>
     </head>
     <body>
-        <div id="sidebar" class="sidebar unselectable">
-            <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+        <div id="contents" style="display: none">
+            <div id="sidebar" class="sidebar unselectable">
+                <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
 
-            <h1>Filters</h1>
+                <h1>Filters</h1>
 
-            <h2>By Time</h2>
+                <h2>By Time</h2>
 
-            <table>
-                <tr>
-                    <td align="right" style="color: white">
-                        From:
-                    </td>
-                    <td align="left">
-                        <input type="date" id="filter-date-start" onchange="updateFilters()">
-                    </td>
-                </tr>
-                <tr>
-                    <td align="right" style="color: white">
-                        Until:
-                    </td>
-                    <td align="left">
-                        <input type="date" id="filter-date-end" onchange="updateFilters()">
-                    </td>
-                </tr>
-            </table>
+                <table>
+                    <tr>
+                        <td align="right" style="color: white">
+                            From:
+                        </td>
+                        <td align="left">
+                            <input type="date" id="filter-date-start" onchange="updateFilters()">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="right" style="color: white">
+                            Until:
+                        </td>
+                        <td align="left">
+                            <input type="date" id="filter-date-end" onchange="updateFilters()">
+                        </td>
+                    </tr>
+                </table>
 
-            <h2>By Author</h2>
+                <h2>By Author</h2>
 
-            <label> <div class="greedy"> <input type="checkbox" id="Anonimos" checked="true" onchange="updateFilters()"> Anônimos </div> </label> <br>
-            <label> <div class="greedy"> <input type="checkbox" id="Farkas" checked="true" onchange="updateFilters()"> Farkas </div> </label> <br>
-            <label> <div class="greedy"> <input type="checkbox" id="Ferrez" checked="true" onchange="updateFilters()"> Ferrez </div> </label> <br>
-            <label> <div class="greedy"> <input type="checkbox" id="Maureen" checked="true" onchange="updateFilters()"> Maureen </div> </label> <br>
-            <label> <div class="greedy"> <input type="checkbox" id="Medeiros" checked="true" onchange="updateFilters()"> José Medeiros </div> </label> <br>
-        </div>
-
-        <div id="main">
-            <!-- Tab bar -->
-            <div class="tab unselectable">
-                <button class="openbtn" onclick="toggleNav()" style="margin-right: 50px;">&#9776; Filters</button>
-
-                <button id="tablink-map" class="tablinks" onclick="openTab(event, 'map')">Map</button>
-                <button id="tablink-histogram" class="tablinks" onclick="openTab(event, 'histogram')">Histogram</button>
-                <button id="tablink-discretehistogram" class="tablinks" onclick="openTab(event, 'discretehistogram')">Discrete Histogram</button>
-                <button id="tablink-similarityprojection" class="tablinks" onclick="openTab(event, 'similarity-projection')">Similarity Projection</button>
-                <button id="tablink-distributedview" class="tablinks" onclick="openTab(event, 'distributed-view')">Distributed View</button>
+                <label> <div class="greedy"> <input type="checkbox" id="Anonimos" checked="true" onchange="updateFilters()"> Anônimos </div> </label> <br>
+                <label> <div class="greedy"> <input type="checkbox" id="Farkas" checked="true" onchange="updateFilters()"> Farkas </div> </label> <br>
+                <label> <div class="greedy"> <input type="checkbox" id="Ferrez" checked="true" onchange="updateFilters()"> Ferrez </div> </label> <br>
+                <label> <div class="greedy"> <input type="checkbox" id="Maureen" checked="true" onchange="updateFilters()"> Maureen </div> </label> <br>
+                <label> <div class="greedy"> <input type="checkbox" id="Medeiros" checked="true" onchange="updateFilters()"> José Medeiros </div> </label> <br>
             </div>
 
-            <!-- Tab content -->
-            <div id="map" class="tabcontent"> </div>
-            <div id="histogram" class="tabcontent"> </div>
-            <div id="discretehistogram" class="tabcontent"> </div>
-            <div id="similarity-projection" class="tabcontent"> </div>
-            <div id="distributed-view" class="tabcontent"> </div>
+            <div id="main">
+                <!-- Tab bar -->
+                <div class="tab unselectable">
+                    <button class="openbtn" onclick="toggleNav()" style="margin-right: 50px;">&#9776; Filters</button>
 
-            <center style="margin-top: 10px; font-size: 10px">
-                Check this project out on GitHub: <a href="https://github.com/dccsillag/ims-viewer/tree/gh-pages">dccsillag/ims-viewer:gh-pages</a>
-            </center>
-        </div>
+                    <button id="tablink-map" class="tablinks" onclick="openTab(event, 'map')">Map</button>
+                    <button id="tablink-histogram" class="tablinks" onclick="openTab(event, 'histogram')">Histogram</button>
+                    <button id="tablink-discretehistogram" class="tablinks" onclick="openTab(event, 'discretehistogram')">Discrete Histogram</button>
+                    <button id="tablink-similarityprojection" class="tablinks" onclick="openTab(event, 'similarity-projection')">Similarity Projection</button>
+                    <button id="tablink-distributedview" class="tablinks" onclick="openTab(event, 'distributed-view')">Distributed View</button>
+                </div>
 
-        <!-- Set up the views -->
-        <script src="map.js"> </script>
-        <script src="histogram.js"> </script>
-        <script src="discretehistogram.js"> </script>
-        <script src="similarityprojection.js"> </script>
-        <script src="distributedview.js"> </script>
+                <!-- Tab content -->
+                <div id="map" class="tabcontent"> </div>
+                <div id="histogram" class="tabcontent"> </div>
+                <div id="discretehistogram" class="tabcontent"> </div>
+                <div id="similarity-projection" class="tabcontent"> </div>
+                <div id="distributed-view" class="tabcontent"> </div>
 
-        <!-- Set up the filters -->
-        <script src="filters.js"> </script>
+                <center style="margin-top: 10px; font-size: 10px">
+                    Check this project out on GitHub: <a href="https://github.com/dccsillag/ims-viewer/tree/gh-pages">dccsillag/ims-viewer:gh-pages</a>
+                </center>
+            </div>
 
-        <!-- Set up the tabs: -->
-        <script>
-            function openTab(evt, tabName) {
-                var i, tabcontent, tablinks;
+            <!-- Set up the views -->
+            <script src="map.js"> </script>
+            <script src="histogram.js"> </script>
+            <script src="discretehistogram.js"> </script>
+            <script src="similarityprojection.js"> </script>
+            <script src="distributedview.js"> </script>
 
-                tabcontent = document.getElementsByClassName("tabcontent");
-                for (i = 0; i < tabcontent.length; i++)
-                    tabcontent[i].style.display = "none";
+            <!-- Set up the filters -->
+            <script src="filters.js"> </script>
 
-                tablinks = document.getElementsByClassName("tablinks");
-                for (i = 0; i < tablinks.length; i++)
-                    tablinks[i].className = tablinks[i].className.replace(" active", "");
+            <!-- Set up the tabs: -->
+            <script>
+                function openTab(evt, tabName) {
+                    var i, tabcontent, tablinks;
 
-                document.getElementById(tabName).style.display = "block";
-                evt.currentTarget.className += " active";
-            }
+                    tabcontent = document.getElementsByClassName("tabcontent");
+                    for (i = 0; i < tabcontent.length; i++)
+                        tabcontent[i].style.display = "none";
 
-            //document.getElementById('tablink-map').click();
-            document.getElementById('tablink-similarityprojection').click();
-        </script>
-        <!-- Set up the filters sidebar: -->
-        <script>
-            /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
-            function toggleNav() {
-                if (document.getElementById("sidebar").style.width == "20%")
-                    closeNav();
-                else {
-                    document.getElementById("sidebar").style.width = "20%";
-                    document.getElementById("sidebar").style.paddingLeft = "30px";
-                    document.getElementById("main").style.marginLeft = "21%";
+                    tablinks = document.getElementsByClassName("tablinks");
+                    for (i = 0; i < tablinks.length; i++)
+                        tablinks[i].className = tablinks[i].className.replace(" active", "");
+
+                    document.getElementById(tabName).style.display = "block";
+                    evt.currentTarget.className += " active";
+                }
+
+                //document.getElementById('tablink-map').click();
+                document.getElementById('tablink-similarityprojection').click();
+            </script>
+            <!-- Set up the filters sidebar: -->
+            <script>
+                /* Set the width of the sidebar to 250px and the left margin of the page content to 250px */
+                function toggleNav() {
+                    if (document.getElementById("sidebar").style.width == "20%")
+                        closeNav();
+                    else {
+                        document.getElementById("sidebar").style.width = "20%";
+                        document.getElementById("sidebar").style.paddingLeft = "30px";
+                        document.getElementById("main").style.marginLeft = "21%";
+
+                        var btns = document.getElementsByClassName("openbtn")
+                        for (var i = 0; i < btns.length; i++)
+                            btns[i].className += " sideopen";
+                    }
+                }
+
+                /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+                function closeNav() {
+                    document.getElementById("sidebar").style.width = "0";
+                    document.getElementById("sidebar").style.paddingLeft = "0";
+                    document.getElementById("main").style.marginLeft = "0";
 
                     var btns = document.getElementsByClassName("openbtn")
                     for (var i = 0; i < btns.length; i++)
-                        btns[i].className += " sideopen";
+                        btns[i].className = btns[i].className.replace(" sideopen", "");
                 }
-            }
-
-            /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
-            function closeNav() {
-                document.getElementById("sidebar").style.width = "0";
-                document.getElementById("sidebar").style.paddingLeft = "0";
-                document.getElementById("main").style.marginLeft = "0";
-
-                var btns = document.getElementsByClassName("openbtn")
-                for (var i = 0; i < btns.length; i++)
-                    btns[i].className = btns[i].className.replace(" sideopen", "");
-            }
-        </script>
+            </script>
+        </div>
     </body>
 </html>

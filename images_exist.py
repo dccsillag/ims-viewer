@@ -4,19 +4,14 @@ import sys
 import os
 import argparse
 import pandas as pd
-from PIL import Image
-
-
-def rects_overlap(l0, s0, l1, s1):
-    r0 = (l0[0]+s0[0], l0[1]+s0[1])
-    r1 = (l1[0]+s1[0], l1[1]+s1[1])
-    return not (r0[0] <= l1[0] or  r1[0] <= l0[0] or  r0[1] <= l1[1] or  r1[1] <= l0[1])
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("input", action='store', type=str, help="Input table")
+    ap.add_argument("images", action='store', type=str, help="Image directory")
     ap.add_argument("output", action='store', type=str, help="Output table")
+    ap.add_argument("-f", "--filter", action='store_true', help="Whether to filter the resulting table (default=False)")
     args = ap.parse_args()
 
     if args.input.endswith('.csv'):
@@ -26,16 +21,10 @@ def main():
     else:
         raise IOError("Unrecognized file extension for input table")
 
-    dims = df['file path'].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
-    size = 100
-
-    rects = zip(zip(df['similarity x'], df['similarity y']), dims)
-    while any(map(lambda x: any(map(lambda y: x != y and rects_overlap(*x, *y), rects)), rects)):
-        size *= 0.5
-
-    print(f"size = {size}")
-
-    df['similarity size'] = size
+    if args.filter:
+        df = df[df['file name'].map(lambda fname: os.path.exists(os.path.join(args.images, fname)), 'ignore')]
+    else:
+        df['file exists'] = df['file name'].map(lambda fname: os.path.exists(os.path.join(args.images, fname)), 'ignore')
 
     if args.output.endswith('.csv'):
         df.to_csv(args.output)
