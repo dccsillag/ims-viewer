@@ -1,37 +1,37 @@
-var width = 500;
-var height = 500;
+function build_similarityprojection(data) {
+    var width = 500;
+    var height = 500;
 
-// Adapted from https://benclinkinbeard.com/d3tips/make-any-chart-responsive-with-one-function/?utm_content=buffer976d6&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer
-function responsivefy(svg) {
-    const container = d3.select(svg.node().parentNode),
-        width = parseInt(svg.style('width'), 10),
-        height = parseInt(svg.style('height'), 10);
+    // Adapted from https://benclinkinbeard.com/d3tips/make-any-chart-responsive-with-one-function/?utm_content=buffer976d6&utm_medium=social&utm_source=twitter.com&utm_campaign=buffer
+    function responsivefy(svg) {
+        const container = d3.select(svg.node().parentNode),
+            width = parseInt(svg.style('width'), 10),
+            height = parseInt(svg.style('height'), 10);
 
-    svg.attr('viewBox', `0 0 ${width} ${height}`)
-        //.attr('preserveAspectRatio', 'xMinYMid')
-        .call(resize);
+        svg.attr('viewBox', `0 0 ${width} ${height}`)
+            //.attr('preserveAspectRatio', 'xMinYMid')
+            .call(resize);
 
-    d3.select(window).on(
-        'resize.' + container.attr('id'),
-        resize
-    );
+        d3.select(window).on(
+            'resize.' + container.attr('id'),
+            resize
+        );
 
-    function resize() {
-        const w = parseInt(container.style('width'));
-        const h = parseInt(container.style('height'));
-        svg.attr('width', w);
-        svg.attr('height', h);
+        function resize() {
+            const w = parseInt(container.style('width'));
+            const h = parseInt(container.style('height'));
+            svg.attr('width', w);
+            svg.attr('height', h);
+        }
     }
-}
 
-var similarityprojection_svg = d3.select("#similarity-projection")
-    .append("svg")
-    .attr("width", width)
-    .attr("height", height)
-    .call(responsivefy)
-    .append("g");
+    var similarityprojection_svg = d3.select("#similarity-projection")
+        .append("svg")
+        .attr("width", width)
+        .attr("height", height)
+        .call(responsivefy)
+        .append("g");
 
-function addSimilarityProjectionImages(data) {
     let filtered_data = data.filter(d => !isNaN(Number(d["similarity x"])));
 
     let mx = Math.min(...filtered_data.map(d => Number(d['similarity x']))) - 50;
@@ -66,26 +66,7 @@ function addSimilarityProjectionImages(data) {
             .attr("y", d => x(Number(d["similarity y"]))-50)
             .attr("width", 100)
             .attr("height", 100)
-            .attr("href", d => "imgs/" + d["file name"])
-
-    // Adapted from https://stackoverflow.com/a/11071687/4803382
-    console.log(imgs.size());
-    var imageCounter = 0;
-    function incrementImageCounter() {
-        div_contents = document.getElementById("contents");
-
-        imageCounter++;
-        if (imageCounter == imgs.size()) {
-            console.log("All images loaded!");
-
-            div_contents.style.display = "flex";
-        } else if (imageCounter > imgs.size()) {
-            console.log("Oooops! Something went wrong (loaded too many images)");
-        }
-    }
-
-    imgs
-        .attr('on', incrementImageCounter);
+            .attr("xlink:href", d => d["image"].src);
 
     var zoom = d3.zoom()
         //.scaleExtent([1, 100])
@@ -108,10 +89,11 @@ function addSimilarityProjectionImages(data) {
         .style("fill", "none")
         .style("pointer-events", "all")
         .call(zoom);
-}
 
-function updateSimilarityProjectionImages(data) {
-    // TODO
-}
+    svgLoaded = true;
+    console.log("SVG Loaded");
 
-d3.csv(CSV_TABLE).then(addSimilarityProjectionImages)
+    function updateSimilarityProjectionImages(data) {
+        // TODO
+    }
+}

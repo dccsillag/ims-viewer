@@ -3,3 +3,8 @@ outputs/
 __pycache__/
 .ipynb_checkpoints/
 .*.swp
+.*.swo
+.eslintrc.yml
+node_modules/
+sess.vim
+package.json
