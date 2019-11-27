@@ -48,17 +48,14 @@
     background-color: #aaa;
 }
 
-body {
-    display: flex;
-    flex-flow: column;
-}
-
 .tabcontent {
     display: none;
-    padding: 6px 12px;
-    border: 1px solid #ccc;
-    border-top: none;
-    flex-grow: 1;
+    border-top: 1px solid #ccc;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    width: 100%;
+    height: 95%;
 
     animation: fadeEffect 0.25s;
 }
@@ -93,7 +90,6 @@ body {
 
 .sidebar .greedy {
     width: 100%;
-    /* background-color: orange; */
 }
 
 .leaflet-popup-close-button .unselectable {
@@ -108,22 +104,16 @@ body {
 
 #main {
     transition: margin-left .5s;
-    /* padding: 20px; */
 
-    display: flex;
-    padding: 6px 12px;
-    flex-grow: 1;
-    flex-flow: column;
+    height: 100%;
+    width: 100%;
 }
 
 #contents {
     transition: margin-left .5s;
-    /* padding: 20px; */
 
-    display: flex;
-    padding: 6px 12px;
-    flex-grow: 1;
-    flex-flow: column;
+    display: none;
+    height: 100%;
 }
         </style>
     </head>
@@ -132,7 +122,7 @@ body {
             Loading...
         </div>
 
-        <div id="contents" style="display: none">
+        <div id="contents">
             <div id="sidebar" class="sidebar unselectable">
                 <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
 
@@ -187,9 +177,11 @@ body {
                 <div id="similarity-projection" class="tabcontent"> </div>
                 <div id="distributed-view" class="tabcontent"> </div>
 
-                <center style="margin-top: 10px; font-size: 10px">
-                    Check this project out on GitHub: <a href="https://github.com/dccsillag/ims-viewer/tree/gh-pages">dccsillag/ims-viewer:gh-pages</a>
-                </center>
+                <footer>
+                    <center style="margin-top: 10px; font-size: 10px">
+                        Check this project out on GitHub: <a href="https://github.com/dccsillag/ims-viewer/tree/gh-pages">dccsillag/ims-viewer:gh-pages</a>
+                    </center>
+                </footer>
             </div>
 
             <!-- Set up the views -->
@@ -229,9 +221,10 @@ body {
                     if (document.getElementById("sidebar").style.width == "20%")
                         closeNav();
                     else {
-                        document.getElementById("sidebar").style.width = "20%";
+                        document.getElementById("sidebar").style.width       = "20%";
                         document.getElementById("sidebar").style.paddingLeft = "30px";
-                        document.getElementById("main").style.marginLeft = "21%";
+                        document.getElementById("main").style.marginLeft     = "20%";
+                        document.getElementById("main").style.width          = "80%";
 
                         var btns = document.getElementsByClassName("openbtn")
                         for (var i = 0; i < btns.length; i++)
@@ -241,9 +234,10 @@ body {
 
                 /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
                 function closeNav() {
-                    document.getElementById("sidebar").style.width = "0";
+                    document.getElementById("sidebar").style.width       = "0";
                     document.getElementById("sidebar").style.paddingLeft = "0";
-                    document.getElementById("main").style.marginLeft = "0";
+                    document.getElementById("main").style.marginLeft     = "0";
+                    document.getElementById("main").style.width          = "100%";
 
                     var btns = document.getElementsByClassName("openbtn")
                     for (var i = 0; i < btns.length; i++)
