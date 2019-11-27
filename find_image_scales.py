@@ -10,6 +10,10 @@ import numpy as np
 from scipy.spatial import Voronoi
 
 
+def ccw(a, b, c):
+    return (b[0]-a[0])*(c[1]-a[1]) - (b[1]-a[1])*(c[0]-a[0])
+
+
 # XXX: untested
 def linedist(p, q, pt):
     """ Minimum distance (aka Orthogonal Distance) between a line and a point
@@ -17,7 +21,7 @@ def linedist(p, q, pt):
         NOTE: not a line segment, but a line.
         """
 
-    return abs((q[1] - p[1])*p[0] - (q[0] - p[0])*q[0] + q[0]*p[1] - q[1]*p[0]) / \
+    return abs(ccw(p, q, pt)) / \
         math.sqrt((q[1] - p[1])**2 + (q[0] - p[0])**2)
 
 

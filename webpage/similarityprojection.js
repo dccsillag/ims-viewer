@@ -1,4 +1,11 @@
 function build_similarityprojection(data) {
+    let filtered_data = data.filter(d => !isNaN(Number(d["similarity x"])));
+
+    let mx = Math.min(...filtered_data.map(d => Number(d['similarity x']))) - 50;
+    let Mx = Math.max(...filtered_data.map(d => Number(d['similarity x']))) + 50;
+    let my = Math.min(...filtered_data.map(d => Number(d['similarity y']))) - 50;
+    let My = Math.max(...filtered_data.map(d => Number(d['similarity y']))) + 50;
+
     var width = 500;
     var height = 500;
 
@@ -8,9 +15,7 @@ function build_similarityprojection(data) {
             width = parseInt(svg.style('width'), 10),
             height = parseInt(svg.style('height'), 10);
 
-        svg.attr('viewBox', `0 0 ${width} ${height}`)
-            //.attr('preserveAspectRatio', 'xMinYMid')
-            .call(resize);
+        svg.call(resize);
 
         d3.select(window).on(
             'resize.' + container.attr('id'),
@@ -34,20 +39,13 @@ function build_similarityprojection(data) {
         .append("svg")
         .attr("width", width)
         .attr("height", height)
-        .call(responsivefy)
         .call(zoom)
+        .call(responsivefy)
+        .attr("viewBox", [mx-10, my-10, Mx-mx+20, My-my+20])
         .append("g");
-
-    let filtered_data = data.filter(d => !isNaN(Number(d["similarity x"])));
-
-    let mx = Math.min(...filtered_data.map(d => Number(d['similarity x']))) - 50;
-    let Mx = Math.max(...filtered_data.map(d => Number(d['similarity x']))) + 50;
-    let my = Math.min(...filtered_data.map(d => Number(d['similarity y']))) - 50;
-    let My = Math.max(...filtered_data.map(d => Number(d['similarity y']))) + 50;
 
     // Scatter the images
     var imgs = similarityprojection_svg
-        .attr("viewBox", [mx-10, my-10, Mx-mx+20, My-my+20])
         .append("g")
         .selectAll("dot")
         .data(filtered_data)
