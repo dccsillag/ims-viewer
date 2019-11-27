@@ -18,10 +18,11 @@ d3.csv(CSV_TABLE).then(function(data) {
                 document.getElementById("contents").style.display = 'flex';
                 document.getElementById("loading").style.display = 'none';
 
-                build_map(data);
-                build_histogram(data);
-                build_discretehistogram(data);
-                build_similarityprojection(data);
+                build_map(data);                    // DONE
+                build_histogram(data);              // TODO
+                build_discretehistogram(data);      // TODO
+                build_similarityprojection(data);   // DONE
+                build_distributedview(data);        // TODO (WIP)
             }
         };
         row.image.src = "imgs/" + row['file name'];

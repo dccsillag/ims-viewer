@@ -15,8 +15,8 @@ import geopy.geocoders
 from geopy.geocoders import Nominatim
 import time
 import sklearn.manifold
+import sklearn.cluster
 import tensorflow as tf
-from PIL import Image
 from progressbar import ProgressBar
 
 # Setup SSL certificate for Geopy's Geocoders
@@ -57,6 +57,7 @@ STRS = {
         "similarity_x": "similaridade x",
         "similarity_y": "similaridade y",
         "similarity_s": "similaridade tamanho",
+        "distribution_weight": "distribuição x",
     },
     "en": {
         "file name": "file name",
@@ -89,6 +90,7 @@ STRS = {
         "similarity_x": "similarity x",
         "similarity_y": "similarity y",
         "similarity_s": "similarity size",
+        "distribution_weight": "distribution weight",
     },
 }
 
@@ -99,6 +101,7 @@ def calculate_similarities(lang, df):
         img_array = tf.keras.preprocessing.image.img_to_array(img)
         img_array_expanded_dims = np.expand_dims(img_array, axis=0)
         return tf.keras.applications.mobilenet.preprocess_input(img_array_expanded_dims)
+    fpath_filter = df[STRS[lang]['file path']].apply(lambda x: os.path.exists(x), 'ignore')
 
     # Find the coordinates
 
@@ -121,50 +124,16 @@ def calculate_similarities(lang, df):
 
     featurevecs = df[STRS[lang]['file path']].apply(find_features, 'ignore').dropna()
     featurevecs = np.stack(featurevecs.values)
+
+    # Find the projection
+
     coords = sklearn.manifold.TSNE().fit_transform(featurevecs)
 
     ## Add them to the table
-    fpath_filter = df[STRS[lang]['file path']].apply(lambda x: os.path.exists(x), 'ignore')
     df[STRS[lang]['similarity_x']] = None
     df[STRS[lang]['similarity_x']].loc[fpath_filter] = coords[:, 0]
     df[STRS[lang]['similarity_y']] = None
     df[STRS[lang]['similarity_y']].loc[fpath_filter] = coords[:, 1]
-
-    ## Find the widths and heights
-
-    #dims = df[STRS[lang]['file path']].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
-    #widths, heights = zip(*dims)
-    #resizes = np.ones(len(coords)) * max(max(coords[:,0])-min(coords[:,0]), max(coords[:,1])-min(coords[:,1]))/min(max(widths), max(heights))
-
-    #print("Started optimizing image sizes...")
-
-    #stepsize = 0.1
-    #has_overlapping = True
-    #k = 1
-    #while stepsize > 1e-7:
-    #    print(f"iter: stepsize={stepsize} k={k}", end="\r")
-    #    has_overlapping = False
-    #    for i, ((x0,y0), w0, h0) in enumerate(zip(coords, widths, heights)):
-    #        for j, ((x1,y1), w1, h1) in enumerate(zip(coords, widths, heights)):
-    #            if i == j:
-    #                continue
-    #            ri = resizes[i]
-    #            rj = resizes[j]
-    #            if rects_overlap((x0,y0),(x0+ri*w0,y0+ri*h0), (x1,y1),(x1+rj*w1,y1+rj*h1)):
-    #                has_overlapping = True
-    #                resizes[i] -= stepsize
-    #                resizes[j] -= stepsize
-    #            else:
-    #                resizes[i] += stepsize
-    #                resizes[j] += stepsize
-    #            if resizes[i] <= stepsize or resizes[j] <= stepsize:
-    #                stepsize *= 0.5
-    #    if not has_overlapping:
-    #        stepsize *= 0.5
-    #    k += 1
-
-    #df[STRS[lang]['similarity_s']] = None
-    #df[STRS[lang]['similarity_s']].loc[fpath_filter] = resizes
 
 
 def main():

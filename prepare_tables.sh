@@ -22,13 +22,16 @@ set -o xtrace
 ## Medeiros
 #python3 xml_to_pandas.py inputs/Medeiros.xml -f webpage/imgs/ outputs/final/Medeiros.pickle
 #python3 xml_to_pandas.py inputs/Medeiros.xml -f webpage/imgs/ outputs/final/Medeiros.csv -R
-
-
-# Concatenate everything
-python3 merge_tables.py webpage/table.csv outputs/final/*.csv
-
-# Filter images for those that exist
-python3 images_exist.py webpage/table.csv webpage/imgs/ webpage/table.csv -f
+#
+#
+## Concatenate everything
+#python3 merge_tables.py webpage/table_og.csv outputs/final/*.csv
+#
+## Filter images for those that exist
+#python3 images_exist.py webpage/table_og.csv webpage/imgs/ webpage/table_og.csv -f
 
 # Find the image sizes for the similarity projection
-#python3 find_image_scales.py webpage/table.csv outputs/final/*.csv
+python3 find_image_scales.py webpage/table_og.csv webpage/table.csv -d webpage/imgs/
+
+# Find the image distribution weights for the distributed view
+python3 find_image_distribution.py webpage/table.csv webpage/table.csv -d webpage/imgs/
