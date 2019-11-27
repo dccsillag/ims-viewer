@@ -1,46 +1,83 @@
 #!/usr/bin/env python3
-# vim: fdm=indent
+# vim: fdm=indent cc=100
 import sys
 import os
+import math
 import argparse
 import pandas as pd
 from PIL import Image
+import numpy as np
+from scipy.spatial import Voronoi
 
 
-def rects_overlap(l0, s0, l1, s1):
-    r0 = (l0[0]+s0[0], l0[1]+s0[1])
-    r1 = (l1[0]+s1[0], l1[1]+s1[1])
-    return not (r0[0] <= l1[0] or  r1[0] <= l0[0] or  r0[1] <= l1[1] or  r1[1] <= l0[1])
+# XXX: untested
+def linedist(p, q, pt):
+    """ Minimum distance (aka Orthogonal Distance) between a line and a point
+
+        NOTE: not a line segment, but a line.
+        """
+
+    return abs((q[1] - p[1])*p[0] - (q[0] - p[0])*q[0] + q[0]*p[1] - q[1]*p[0]) / \
+        math.sqrt((q[1] - p[1])**2 + (q[0] - p[0])**2)
 
 
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("input", action='store', type=str, help="Input table")
     ap.add_argument("output", action='store', type=str, help="Output table")
+    ap.add_argument("-d", "--image-directory", action='store', type=str, default=os.getcwd(), help="Image Directory")
     args = ap.parse_args()
 
     if args.input.endswith('.csv'):
-        df = pd.read_csv(args.input)
+        og_df = pd.read_csv(args.input)
     elif args.input.endswith('.pickle'):
-        df = pd.read_pickle(args.input)
+        og_df = pd.read_pickle(args.input)
     else:
         raise IOError("Unrecognized file extension for input table")
 
-    dims = df['file path'].apply(lambda fpath: Image.open(fpath).size if os.path.exists(fpath) else None, 'ignore').dropna()
-    size = 100
+    df = og_df[['similarity x', 'similarity y', 'file name']].dropna()
+    df = df[np.isfinite(df['similarity x']) & np.isfinite(df['similarity y'])]
 
-    rects = zip(zip(df['similarity x'], df['similarity y']), dims)
-    while any(map(lambda x: any(map(lambda y: x != y and rects_overlap(*x, *y), rects)), rects)):
-        size *= 0.5
+    # Read some stuff
+    dims = df['file name'] \
+        .apply(lambda fpath: Image.open(os.path.join(args.image_directory, fpath)).size if os.path.exists(os.path.join(args.image_directory, fpath)) else None, 'ignore')
+    pts = [tuple(x) for x in df[['similarity x', 'similarity y']].values]
 
-    print(f"size = {size}")
+    # Find the Voronoi diagram of the points
+    voronoi = Voronoi(pts)
 
-    df['similarity size'] = size
+    widths  = []
+    heights = []
+    for ki, k in enumerate(filter(lambda x: x >= 0, voronoi.point_region)):
+        if dims[ki] is not None:
+            image_width, image_height = dims[ki]
+            site = voronoi.regions[k]
+
+            edges = []
+            for i in range(len(site)):
+                if site[i] >= 0 and site[(i+1) % len(site)] >= 0:
+                    edges.append((voronoi.vertices[site[i]],
+                                  voronoi.vertices[site[(i+1) % len(site)]]))
+
+            radius = min(linedist(p0, p1, pts[ki]) for p0, p1 in edges)
+
+            norm = math.sqrt(image_width**2 + image_height**2)
+            w    = radius*image_width / norm
+            h    = radius*image_height / norm
+
+            widths.append(w)
+            heights.append(h)
+        else:
+            widths.append(None)
+            heights.append(None)
+
+    og_df['similarity width'] = widths
+    og_df['similarity height'] = heights
 
     if args.output.endswith('.csv'):
-        df.to_csv(args.output)
+        og_df.to_csv(args.output)
     elif args.output.endswith('.pickle'):
-        df.to_pickle(args.output)
+        og_df.to_pickle(args.output)
     else:
         raise IOError("Unrecognized file extension for output table")
 
