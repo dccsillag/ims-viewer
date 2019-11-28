@@ -10,11 +10,8 @@ d3.csv(CSV_TABLE).then(function(data) {
             preloadedImageCounter++;
 
             document.getElementById("loading").innerHTML = `Loading... [${preloadedImageCounter} / ${data.length}]`;
-            console.log(`Loading... [${preloadedImageCounter} / ${data.length}]`)
 
             if (preloadedImageCounter === data.length) {
-                console.log("All images were preloaded!");
-
                 document.getElementById("contents").style.display = 'flex';
                 document.getElementById("loading").style.display = 'none';
 
@@ -22,7 +19,7 @@ d3.csv(CSV_TABLE).then(function(data) {
                 build_histogram(data);              // TODO
                 build_discretehistogram(data);      // TODO
                 build_similarityprojection(data);   // DONE
-                build_distributedview(data);        // TODO (WIP)
+                build_distributedview(data);        // DONE
             }
         };
         row.image.src = "imgs/" + row['file name'];
