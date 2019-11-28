@@ -14,9 +14,6 @@ import certifi
 import geopy.geocoders
 from geopy.geocoders import Nominatim
 import time
-import sklearn.manifold
-import sklearn.cluster
-import tensorflow as tf
 from progressbar import ProgressBar
 
 # Setup SSL certificate for Geopy's Geocoders
@@ -93,47 +90,6 @@ STRS = {
         "distribution_weight": "distribution weight",
     },
 }
-
-
-def calculate_similarities(lang, df):
-    def prepare_image(fpath):
-        img = tf.keras.preprocessing.image.load_img(fpath, target_size=(224, 224))
-        img_array = tf.keras.preprocessing.image.img_to_array(img)
-        img_array_expanded_dims = np.expand_dims(img_array, axis=0)
-        return tf.keras.applications.mobilenet.preprocess_input(img_array_expanded_dims)
-    fpath_filter = df[STRS[lang]['file path']].apply(lambda x: os.path.exists(x), 'ignore')
-
-    # Find the coordinates
-
-    ## Load stuff
-    ### Load VGG-16, pretrained on the ImageNet dataset
-    original_model = tf.keras.applications.vgg16.VGG16()
-    ### Remove the last three layers
-    inp = original_model.input
-    out = original_model.layers[-4].output
-    model = tf.keras.Model(inp, out)
-
-    ## Calculate the similarities
-    def find_features(fpath):
-        if os.path.exists(fpath):
-            ### Prepare the image
-            img = prepare_image(fpath)
-            ### Pass it through the neural net
-            return np.squeeze(model.predict(img))
-        return None
-
-    featurevecs = df[STRS[lang]['file path']].apply(find_features, 'ignore').dropna()
-    featurevecs = np.stack(featurevecs.values)
-
-    # Find the projection
-
-    coords = sklearn.manifold.TSNE().fit_transform(featurevecs)
-
-    ## Add them to the table
-    df[STRS[lang]['similarity_x']] = None
-    df[STRS[lang]['similarity_x']].loc[fpath_filter] = coords[:, 0]
-    df[STRS[lang]['similarity_y']] = None
-    df[STRS[lang]['similarity_y']].loc[fpath_filter] = coords[:, 1]
 
 
 def main():
@@ -272,8 +228,6 @@ def main():
     df[STRS[args.language]['month']] = df[STRS[args.language]['time of image']].map(lambda x: get_date_part(x, 1), 'ignore').fillna(0)
     df[STRS[args.language]['year']]  = df[STRS[args.language]['time of image']].map(lambda x: get_date_part(x, 0), 'ignore').fillna(0)
     ## Find out more stuff
-    ### Calculate similarities, and attach their projection to R^2 to the table
-    calculate_similarities(args.language, df)
     ### Find the latitude and longitude of each image using geopy
     geolocator = Nominatim()
     df[STRS[args.language]['country']] = df[STRS[args.language]['country']].map(lambda x: x[0][0], 'ignore')

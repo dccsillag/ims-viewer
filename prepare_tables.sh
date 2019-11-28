@@ -31,7 +31,10 @@ set -o xtrace
 #python3 images_exist.py webpage/table_og.csv webpage/imgs/ webpage/table_og.csv -f
 
 # Find the image sizes for the similarity projection
-python3 find_image_scales.py webpage/table_og.csv webpage/table.csv -d webpage/imgs/
+python3 find_image_projection.py webpage/table_og.csv webpage/table.csv -d webpage/imgs/
+
+# Find the image sizes for the similarity projection
+python3 find_image_scales.py webpage/table.csv webpage/table.csv -d webpage/imgs/
 
 # Find the image distribution weights for the distributed view
 python3 find_image_distribution.py webpage/table.csv webpage/table.csv -d webpage/imgs/
